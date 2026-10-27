@@ -1,0 +1,92 @@
+{
+  "en": [
+    {
+      "id": "en-to-be",
+      "title": "Verb to be (am / is / are)",
+      "level": "A1",
+      "summary": "Presentarte y describir personas y cosas.",
+      "focus": "afirmativa, negativa, pregunta, contracciones (I'm, she's, they aren't), diferencia con ser/estar"
+    },
+    {
+      "id": "en-present-simple",
+      "title": "Present simple",
+      "level": "A1",
+      "summary": "Rutinas y hechos. La -s de la tercera persona.",
+      "focus": "he/she/it + s, do/does en preguntas y negativas, adverbios de frecuencia"
+    },
+    {
+      "id": "en-past-simple",
+      "title": "Past simple",
+      "level": "A2",
+      "summary": "Contar lo que pasó. Verbos regulares e irregulares.",
+      "focus": "-ed, verbos irregulares comunes, did/didn't, expresiones de tiempo pasado"
+    },
+    {
+      "id": "en-present-perfect",
+      "title": "Present perfect",
+      "level": "B1",
+      "summary": "Experiencias y acciones con relevancia presente.",
+      "focus": "have/has + participio, ever/never/already/yet, for/since, diferencia con past simple"
+    }
+  ],
+  "ja": [
+    {
+      "id": "ja-wa-ga",
+      "title": "Partículas は y が",
+      "level": "A1",
+      "summary": "Tema vs. sujeto de la oración.",
+      "focus": "は marca el tema, が marca el sujeto nuevo o enfatizado, ejemplos contrastados"
+    },
+    {
+      "id": "ja-desu-masu",
+      "title": "です y ます (forma cortés)",
+      "level": "A1",
+      "summary": "Frases básicas y conjugación cortés de verbos.",
+      "focus": "です/じゃありません, verbos ます/ません/ました/ませんでした"
+    },
+    {
+      "id": "ja-wo-ni-de",
+      "title": "Partículas を, に, で",
+      "level": "A2",
+      "summary": "Objeto directo, destino/tiempo y lugar de acción.",
+      "focus": "を objeto directo, に destino y hora, で lugar de la acción y medio, diferencias frecuentes"
+    },
+    {
+      "id": "ja-te-form",
+      "title": "Forma て",
+      "level": "A2",
+      "summary": "La forma más útil: pedir, conectar acciones, estar haciendo.",
+      "focus": "cómo formar て según el grupo del verbo, ～てください, ～ている, conectar acciones con て"
+    }
+  ],
+  "fr": [
+    {
+      "id": "fr-articles",
+      "title": "Artículos y género",
+      "level": "A1",
+      "summary": "le/la/les, un/une/des y el género de los sustantivos.",
+      "focus": "definidos, indefinidos, contracciones au/du, pistas para adivinar el género"
+    },
+    {
+      "id": "fr-etre-avoir",
+      "title": "Être y avoir",
+      "level": "A1",
+      "summary": "Los dos verbos más importantes del francés.",
+      "focus": "presente de être y avoir, usos de avoir (âge, faim, froid), negación con ne...pas"
+    },
+    {
+      "id": "fr-passe-compose",
+      "title": "Passé composé",
+      "level": "A2",
+      "summary": "El pasado más usado al hablar.",
+      "focus": "auxiliar avoir vs être, participios, concordancia con être, verbos de movimiento"
+    },
+    {
+      "id": "fr-futur-proche",
+      "title": "Futur proche",
+      "level": "A2",
+      "summary": "Hablar de planes cercanos con aller + infinitivo.",
+      "focus": "aller conjugado + infinitivo, negación, expresiones de tiempo futuro"
+    }
+  ]
+}
