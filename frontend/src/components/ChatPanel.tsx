@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useLang } from '../context/LangContext'
-import { streamChat, transcribeAudio } from '../lib/api'
+import { streamChat, transcribeAudio, recordActivity } from '../lib/api'
 import type { ChatMessage } from '../lib/api'
 import { speechCode } from '../lib/languages'
 import { recordingSupported, startRecording } from '../lib/recorder'
 import type { ActiveRecording } from '../lib/recorder'
 import { getSessionId } from '../lib/session'
 import { speak, stopSpeaking, synthesisSupported } from '../lib/speech'
+
 
 type Props = { mode: 'text' | 'voice' }
 
@@ -37,6 +38,7 @@ export default function ChatPanel({ mode }: Props) {
   const [transcribing, setTranscribing] = useState(false)
   const [speaking, setSpeaking] = useState(false)
   const [error, setError] = useState('')
+  const [xpNotification, setXpNotification] = useState<number | null>(null)
   const recordingRef = useRef<ActiveRecording | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
   const messagesRef = useRef<ChatMessage[]>([])
@@ -58,33 +60,79 @@ export default function ChatPanel({ mode }: Props) {
     }
   }, [])
 
-  async function send(text: string) {
-    const clean = text.trim()
-    if (!clean || loading) return
-    setError('')
-    setInput('')
-    stopSpeaking()
-    setSpeaking(false)
+async function send(text: string) {
+  const clean = text.trim()
+  if (!clean || loading) return
 
-    const next: ChatMessage[] = [...messagesRef.current, { role: 'user', content: clean }]
-    setMessages([...next, { role: 'assistant', content: '' }])
-    setLoading(true)
-    try {
-      const full = await streamChat(
-        { language: lang, level, mode, session_id: getSessionId(), messages: next },
-        (partial) => setMessages([...next, { role: 'assistant', content: partial }]),
-      )
-      if (mode === 'voice' && full.trim()) {
-        setSpeaking(true)
-        speak(full, speechLang, () => setSpeaking(false))
-      }
-    } catch (e) {
-      setMessages(next)
-      setError(e instanceof Error ? e.message : 'Algo salió mal')
-    } finally {
-      setLoading(false)
-    }
+  setError('')
+  setInput('')
+  stopSpeaking()
+  setSpeaking(false)
+
+  const next: ChatMessage[] = [
+    ...messagesRef.current,
+    { role: 'user', content: clean },
+  ]
+
+  setMessages([...next, { role: 'assistant', content: '' }])
+  setLoading(true)
+
+  try {
+    const full = await streamChat(
+      {
+        language: lang,
+        level,
+        mode,
+        session_id: getSessionId(),
+        messages: next,
+      },
+      (partial) =>
+        setMessages([...next, { role: 'assistant', content: partial }]),
+    )
+
+if (full.trim()) {
+  try {
+    await recordActivity(
+      getSessionId(),
+      lang,
+      mode === 'voice' ? 'voice' : 'chat',
+    )
+
+    const earnedXp = mode === 'voice' ? 15 : 10
+
+    setXpNotification(earnedXp)
+
+    window.setTimeout(() => {
+      setXpNotification(null)
+    }, 2500)
+
+    window.dispatchEvent(
+      new CustomEvent('speakify:activity-recorded', {
+        detail: {
+          sessionId: getSessionId(),
+          language: lang,
+        },
+      }),
+    )
+  } catch (progressError) {
+    console.error(
+      'No se pudo registrar el progreso:',
+      progressError,
+    )
   }
+}
+
+    if (mode === 'voice' && full.trim()) {
+      setSpeaking(true)
+      speak(full, speechLang, () => setSpeaking(false))
+    }
+  } catch (e) {
+    setMessages(next)
+    setError(e instanceof Error ? e.message : 'Algo salió mal')
+  } finally {
+    setLoading(false)
+  }
+}
 
   async function toggleMic() {
     setError('')
@@ -149,6 +197,18 @@ export default function ChatPanel({ mode }: Props) {
 
   return (
     <div className="flex flex-1 flex-col">
+      {xpNotification !== null && (
+  <div
+    role="status"
+    aria-live="polite"
+    className="fixed right-5 top-5 z-50 animate-bounce rounded-2xl border border-violet-300/30 bg-[#201a42] px-5 py-4 font-bold text-violet-200 shadow-2xl shadow-violet-950/40"
+  >
+    ✨ +{xpNotification} XP
+    <p className="mt-1 text-xs font-normal text-slate-300">
+      ¡Sigue así! Estás progresando.
+    </p>
+  </div>
+)}
       <div
         className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
         style={{ minHeight: '50vh', maxHeight: '60vh' }}
