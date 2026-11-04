@@ -1,6 +1,8 @@
 
 from typing import Literal
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -13,6 +15,7 @@ from ..providers import get_provider
 router = APIRouter()
 
 MAX_HISTORY = 20
+_background: set[asyncio.Task] = set()  # evita que el GC cancele las tareas
 
 
 class Message(BaseModel):
@@ -66,24 +69,21 @@ async def chat(
             )
             return
 
-        try:
-            await db.save_message(
-                current_user.id,
-                req.session_id,
-                req.language,
-                "user",
-                last_user,
-            )
+        # En segundo plano: la respuesta (y la voz) no esperan a Supabase.
+        async def persist():
+            try:
+                await db.save_message(
+                    current_user.id, req.session_id, req.language, "user", last_user
+                )
+                await db.save_message(
+                    current_user.id, req.session_id, req.language, "assistant", "".join(parts)
+                )
+            except Exception as exc:
+                print(f"[supabase] no se pudieron guardar los mensajes: {exc}")
 
-            await db.save_message(
-                current_user.id,
-                req.session_id,
-                req.language,
-                "assistant",
-                "".join(parts),
-            )
-        except Exception as exc:
-            print(f"[supabase] no se pudieron guardar los mensajes: {exc}")
+        task = asyncio.create_task(persist())
+        _background.add(task)
+        task.add_done_callback(_background.discard)
 
     return StreamingResponse(
         event_stream(),

@@ -34,13 +34,21 @@ class GeminiProvider(LLMProvider):
         ]
 
     @staticmethod
+    def _config_for(model: str, **kwargs) -> types.GenerateContentConfig:
+        """Gemini 2.5 Flash "piensa" por defecto antes de responder, lo que suma
+        varios segundos. Para un tutor conversacional y para transcribir no hace falta."""
+        if "2.5-flash" in model:
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+        return types.GenerateContentConfig(**kwargs)
+
+    @staticmethod
     def _is_retryable(exc: Exception) -> bool:
         return isinstance(exc, errors.APIError) and getattr(exc, "code", None) in RETRYABLE_CODES
 
     async def stream(self, system: str, messages: list[dict]) -> AsyncIterator[str]:
-        config = types.GenerateContentConfig(system_instruction=system, temperature=0.7)
         last_exc: Exception | None = None
         for model in self.models:
+            config = self._config_for(model, system_instruction=system, temperature=0.7)
             for attempt in range(self._attempts):
                 started = False
                 try:
@@ -67,10 +75,11 @@ class GeminiProvider(LLMProvider):
         raise last_exc  # type: ignore[misc]
 
     async def _generate_with_fallback(
-        self, contents: list[types.Content], config: types.GenerateContentConfig
+        self, contents: list[types.Content], **config_kwargs
     ) -> str:
         last_exc: Exception | None = None
         for model in self.models:
+            config = self._config_for(model, **config_kwargs)
             for attempt in range(self._attempts):
                 try:
                     response = await self.client.aio.models.generate_content(
@@ -93,12 +102,12 @@ class GeminiProvider(LLMProvider):
     async def generate(
         self, system: str, messages: list[dict], json_mode: bool = False
     ) -> str:
-        config = types.GenerateContentConfig(
+        return await self._generate_with_fallback(
+            self._contents(messages),
             system_instruction=system,
             temperature=0.7,
             response_mime_type="application/json" if json_mode else None,
         )
-        return await self._generate_with_fallback(self._contents(messages), config)
 
     async def transcribe(self, audio: bytes, mime_type: str, language_name: str) -> str:
         prompt = (
@@ -118,5 +127,4 @@ class GeminiProvider(LLMProvider):
                 ],
             )
         ]
-        config = types.GenerateContentConfig(temperature=0)
-        return await self._generate_with_fallback(contents, config)
+        return await self._generate_with_fallback(contents, temperature=0)
