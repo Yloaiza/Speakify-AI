@@ -10,7 +10,7 @@ export type ActiveRecording = {
 }
 
 const SPEECH_RMS = 0.03 // volumen mínimo para considerar que hablas
-const SILENCE_MS = 1500 // silencio que cierra la grabación después de hablar
+const SILENCE_MS = 1000 // silencio que cierra la grabación después de hablar
 const NO_SPEECH_MS = 8000 // si no hablas en este tiempo, se cancela
 const MAX_MS = 30000 // duración máxima
 

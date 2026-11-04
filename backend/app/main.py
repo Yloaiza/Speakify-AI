@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import config
 from .prompts import LANGUAGES, LEVELS
 from .routes import chat, grammar, transcribe
+from .routes import chat, grammar, transcribe, progress
+
 
 app = FastAPI(title="Speakify AI API")
 
@@ -17,6 +19,8 @@ app.add_middleware(
 app.include_router(chat.router, prefix="/api")
 app.include_router(grammar.router, prefix="/api")
 app.include_router(transcribe.router, prefix="/api")
+app.include_router(progress.router, prefix="/api")
+
 
 
 @app.get("/api/health")
